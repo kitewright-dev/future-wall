@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b0f1a">
+<meta name="color-scheme" content="dark">
+<title>Future Wall</title>
+<meta name="description" content="Write a letter that nobody can open until the date you pick. Not even us.">
+<meta property="og:title" content="Future Wall">
+<meta property="og:description" content="Write a letter that nobody can open until the date you pick. Not even us.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='%239b2c2c'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23651a1a' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./">Future Wall</a>
+  <button id="connect" class="ghost" type="button">Connect</button>
+</header>
+
+<main id="home">
+  <section class="hero">
+    <h1>Write a letter nobody can open until the day you pick.</h1>
+    <p class="lede">It gets locked with drand timelock encryption and stored on Polygon. Nobody can read it before that date, not even us. When the day comes it opens for everyone.</p>
+    <div class="stats">
+      <div class="stat"><b id="total">·</b><span>letters sealed</span></div>
+      <div id="years" class="years"></div>
+    </div>
+  </section>
+
+  <section class="write paper">
+    <label for="text" class="label">Your letter</label>
+    <textarea id="text" dir="auto" rows="7" maxlength="2400" placeholder="Dear future me..." autocapitalize="sentences" enterkeyhint="enter"></textarea>
+    <div class="row between"><span class="muted small">Public once it opens. Don't put secrets in it.</span><span id="count" class="muted small">0 / 1200</span></div>
+
+    <span class="label">Open it on</span>
+    <div class="chips" role="group" aria-label="Open date">
+      <button type="button" class="chip" data-preset="1y">In 1 year</button>
+      <button type="button" class="chip" data-preset="5y">In 5 years</button>
+      <button type="button" class="chip" data-preset="2030">1 Jan 2030</button>
+      <button type="button" class="chip" data-preset="pick">Pick a date</button>
+    </div>
+    <input id="pick" type="datetime-local" hidden>
+    <p id="when" class="when"></p>
+
+    <button id="seal" class="primary" type="button">Seal it</button>
+    <p class="muted small center">Costs <span id="fee">·</span> POL plus a little gas. You get the envelope as an NFT.</p>
+  </section>
+
+  <section>
+    <h2>Latest on the wall</h2>
+    <div id="recent" class="grid"></div>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <p>Your letter is encrypted in your browser to a future round of <a href="https://drand.love" target="_blank" rel="noopener">drand</a>, a randomness network run by universities and companies around the world. The key for that round simply doesn't exist yet, so there is nothing anyone can do to open it early.</p>
+    <p>The encrypted letter is stored in the contract on Polygon. Once the date passes the key gets published, anyone can open it, and whoever puts the text back on chain turns the envelope into the letter itself.</p>
+    <p>First 1000 letters get a gold Genesis seal. Letters set for 1 January get a blue New Year seal.</p>
+  </section>
+</main>
+
+<main id="view" hidden>
+  <a class="back" href="./">‹ All letters</a>
+  <h2 id="v-title"></h2>
+  <p id="v-new" class="ok" hidden>Sealed. Nobody can read it now, you included. Send the link to whoever it's for.</p>
+  <img id="v-img" class="envelope" alt="">
+  <p id="v-status" class="status"></p>
+  <div id="v-body" class="letter" dir="auto" hidden></div>
+  <div class="actions">
+    <button id="v-open" class="primary" type="button" hidden>Open it</button>
+    <button id="v-publish" class="primary" type="button" hidden>Put it on the wall</button>
+    <button id="v-share" class="ghost" type="button">Share</button>
+  </div>
+</main>
+
+<footer class="foot">
+  <a id="scan" target="_blank" rel="noopener">Contract</a>
+  <span>·</span>
+  <span>Polygon</span>
+</footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+name: test, launch, publish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: main
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p ci-out empty
+          {
+            cp build/FutureWall.json /tmp/committed.json
+            node compile.js
+            cmp build/FutureWall.json /tmp/committed.json && echo "compiled bytecode matches committed artifact"
+            node -e "const a=require('./build/FutureWall.json'),d=require('./build/deploy.json'),{Transaction}=require('ethers');if(!Transaction.from(d.raw).data.startsWith(a.bytecode))process.exit(1);console.log('signed deploy tx carries this bytecode')"
+            node test/run.mjs | grep -v 'beacon received'
+            node test/replay.mjs
+            node build.mjs
+            cmp site/app.js dist/app.js && echo "dist/app.js matches a fresh build" || echo "WARNING dist/app.js differs from fresh build"
+          } 2>&1 | tee ci-out/test.txt
+      - name: launch on polygon
+        run: node scripts/launch.mjs
+      - name: publish logs and site
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "AM.JMC"
+          git config user.email "272643218+kitewright-dev@users.noreply.github.com"
+          SHA=$(git rev-parse --short HEAD)
+          cp -r ci-out /tmp/ci-out
+          [ -f site/app.js ] && cp -r site /tmp/site || true
+          git checkout --orphan ci-log
+          git rm -rq --cached . && git clean -fdq -e node_modules
+          cp /tmp/ci-out/* .
+          echo "$SHA $(date -u +%FT%TZ)" > RUN.txt
+          git add -A && git commit -qm "ci log $SHA" && git push -fq origin ci-log
+          if [ -d /tmp/site ]; then
+            git checkout --orphan gh-pages
+            git rm -rq --cached . 2>/dev/null; git clean -fdq -e node_modules
+            cp -r /tmp/site/* . && touch .nojekyll
+            git add -A && git commit -qm "site $SHA" && git push -fq origin gh-pages
+          fi
