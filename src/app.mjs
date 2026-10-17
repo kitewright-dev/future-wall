@@ -41,13 +41,81 @@ async function read(fn, args = []) {
 
 // ---------- wallet ----------
 let account = null;
-const eth = (method, params = []) => window.ethereum.request({ method, params });
-async function connect() {
-  if (!window.ethereum) {
-    const here = location.host + location.pathname;
-    toast('No wallet here. Open this page inside your wallet app browser.', `https://metamask.app.link/dapp/${here}${location.search}`);
-    throw new Error('no wallet');
+let wallet = null; // the EIP-1193 provider the user picked
+const eth = (method, params = []) => wallet.request({ method, params });
+
+// Wallets announce themselves through EIP-6963; window.ethereum is the fallback.
+const found = new Map();
+window.addEventListener('eip6963:announceProvider', (e) => {
+  const d = e.detail;
+  if (d?.info?.uuid && d.provider) found.set(d.info.uuid, d);
+});
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+function injected() {
+  const list = [...found.values()].map((d) => ({ name: d.info.name, icon: d.info.icon, provider: d.provider }));
+  if (!list.length && window.ethereum) list.push({ name: window.ethereum.isMetaMask ? 'MetaMask' : 'Browser wallet', provider: window.ethereum });
+  return list;
+}
+
+// Deep links that open this page inside a wallet app's own browser.
+function walletLinks() {
+  const full = location.href;
+  const bare = location.host + location.pathname + location.search;
+  const enc = encodeURIComponent(full);
+  return [
+    { name: 'MetaMask', href: `https://metamask.app.link/dapp/${bare}` },
+    { name: 'Trust Wallet', href: `https://link.trustwallet.com/open_url?coin_id=966&url=${enc}` },
+    { name: 'Coinbase Wallet', href: `https://go.cb-w.com/dapp?cb_url=${enc}` },
+    { name: 'OKX Wallet', href: `okx://wallet/dapp/url?dappUrl=${enc}` },
+  ];
+}
+
+let sheetResolve = null;
+function openSheet() {
+  const sheet = $('#sheet'), list = $('#sheet-list');
+  list.replaceChildren();
+  const inj = injected();
+  if (inj.length) {
+    $('#sheet-title').textContent = 'Connect a wallet';
+    $('#sheet-sub').textContent = 'Pick the wallet you want to use.';
+    for (const w of inj) {
+      const b = el('button', 'wopt'); b.type = 'button';
+      if (w.icon) { const i = el('img'); i.src = w.icon; i.alt = ''; b.append(i); } else b.append(el('span', 'wdot'));
+      b.append(el('span', null, w.name));
+      b.onclick = () => { const r = sheetResolve; sheetResolve = null; closeSheet(); r?.(w.provider); };
+      list.append(b);
+    }
+  } else {
+    $('#sheet-title').textContent = 'Open in your wallet';
+    $('#sheet-sub').textContent = 'This browser has no wallet. Open the page inside your wallet app and connect from there.';
+    for (const w of walletLinks()) {
+      const a = el('a', 'wopt'); a.href = w.href; a.append(el('span', 'wdot'), el('span', null, w.name));
+      list.append(a);
+    }
+    const c = el('button', 'wopt'); c.type = 'button'; c.append(el('span', 'wdot'), el('span', null, 'Other wallet? Copy the link'));
+    c.onclick = async () => { try { await navigator.clipboard.writeText(location.href); toast('Link copied. Paste it in your wallet browser.'); } catch { toast(location.href); } };
+    list.append(c);
   }
+  sheet.hidden = false;
+  requestAnimationFrame(() => { sheet.dataset.open = '1'; });
+  return new Promise((res) => { sheetResolve = res; });
+}
+function closeSheet() {
+  const sheet = $('#sheet');
+  sheet.dataset.open = '';
+  setTimeout(() => { sheet.hidden = true; }, 220);
+  const r = sheetResolve; sheetResolve = null; if (r) setTimeout(() => r(null), 0);
+}
+
+async function connect() {
+  if (account && wallet) return account;
+  // give late EIP-6963 announcements a moment
+  if (!found.size) { window.dispatchEvent(new Event('eip6963:requestProvider')); await new Promise((r) => setTimeout(r, 150)); }
+  const inj = injected();
+  let p = inj.length === 1 ? inj[0].provider : null;
+  if (!p) p = await openSheet();
+  if (!p) throw new Error('no wallet');
+  wallet = p;
   const accs = await eth('eth_requestAccounts');
   account = accs[0];
   const chain = await eth('eth_chainId');
@@ -60,7 +128,9 @@ async function connect() {
       } else throw e;
     }
   }
-  $('#connect').textContent = short(account);
+  const btn = $('#connect');
+  btn.textContent = short(account);
+  btn.dataset.on = '1';
   return account;
 }
 const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
@@ -289,6 +359,7 @@ async function showLetter(id) {
 // ---------- boot ----------
 async function boot() {
   $('#connect').addEventListener('click', () => connect().catch((e) => { if (e.message !== 'no wallet') toast(errText(e)); }));
+  $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet' || e.target.closest('#sheet-close')) closeSheet(); });
   $('#scan').href = `https://polygonscan.com/address/${CONFIG.contract}`;
   const id = new URLSearchParams(location.search).get('id');
   const total = await loadStats();

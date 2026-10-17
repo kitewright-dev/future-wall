@@ -15,7 +15,7 @@
 <body>
 <header class="top">
   <a class="brand" href="./">Future Wall</a>
-  <button id="connect" class="ghost" type="button">Connect</button>
+  <button id="connect" class="connect" type="button"><span class="cdot"></span>Connect wallet</button>
 </header>
 
 <main id="home">
@@ -79,6 +79,15 @@
   <span>·</span>
   <span>Polygon</span>
 </footer>
+<div id="sheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="grab"></div>
+    <h3 id="sheet-title">Connect a wallet</h3>
+    <p id="sheet-sub" class="muted small"></p>
+    <div id="sheet-list" class="wlist"></div>
+    <button id="sheet-close" class="ghost wide" type="button">Cancel</button>
+  </div>
+</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="app.js"></script>
 </body>
