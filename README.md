@@ -27,6 +27,8 @@ To stop someone from putting fake text on the wall, the contract keeps a hash of
 
 Polygon contract: [`0x5E2542cE0ce83756144fA75136D93347aC76D06C`](https://polygonscan.com/address/0x5E2542cE0ce83756144fA75136D93347aC76D06C)
 
+source is verified on polygonscan, so you can read it right there on the contract tab.
+
 the first one (`v1/`) lives at `0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853` and never got any letters.
 
 `v1/` is the first deployment (same thing, but it held fees until the owner withdrew them). Its source is kept so anyone can check it against the chain.
