@@ -49,7 +49,7 @@ jobs:
           cp /tmp/ci-out/* .
           echo "$SHA $(date -u +%FT%TZ)" > RUN.txt
           git add -A && git commit -qm "ci log $SHA" && git push -fq origin ci-log
-          if [ -d /tmp/site ]; then
+          if [ -d /tmp/site ] && grep -q 'RESULT ok' /tmp/ci-out/status.txt; then
             git checkout --orphan gh-pages
             git rm -rq --cached . 2>/dev/null; git clean -fdq -e node_modules
             cp -r /tmp/site/* . && touch .nojekyll

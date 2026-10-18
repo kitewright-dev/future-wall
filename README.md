@@ -25,7 +25,9 @@ To stop someone from putting fake text on the wall, the contract keeps a hash of
 - every fee goes straight to the owner wallet in the same transaction as the seal, nothing piles up in the contract. if that transfer ever fails the letter still gets sealed and the fee waits for `withdraw()`.
 - the owner can change the fee. The owner can't read, change or delete letters, and can't touch anyone's NFT.
 
-Polygon contract: [`0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853`](https://polygonscan.com/address/0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853)
+Polygon contract: [`0x5E2542cE0ce83756144fA75136D93347aC76D06C`](https://polygonscan.com/address/0x5E2542cE0ce83756144fA75136D93347aC76D06C)
+
+the first one (`v1/`) lives at `0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853` and never got any letters.
 
 `v1/` is the first deployment (same thing, but it held fees until the owner withdrew them). Its source is kept so anyone can check it against the chain.
 

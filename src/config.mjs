@@ -1,6 +1,6 @@
 export const CONFIG = {
-  "contract": "0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853",
-  "deployTx": "0xee4bd3a3aed1b2bca7eac77ca49ca3e3c8c8c489a85ca41617a090ce4d631e22",
+  "contract": "0x5E2542cE0ce83756144fA75136D93347aC76D06C",
+  "deployTx": "0x9e80b057bfd1fe71ddafb0c7ee3937abf794e99b2fddbbdc036364bfee21111f",
   "rpcs": [
     "https://polygon-bor-rpc.publicnode.com",
     "https://polygon.drpc.org",
