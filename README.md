@@ -1,6 +1,6 @@
 # Future Wall
 
-live at **https://future-wall.vercel.app**
+live at **https://futurewall.site**
 
 You write a letter and pick a date. The letter gets encrypted in your browser so it can only be opened after that date, and it's stored in a contract on Polygon. Nobody can read it early. That includes me.
 
