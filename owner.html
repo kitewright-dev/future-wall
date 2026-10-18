@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a"><meta name="robots" content="noindex"><title>Owner</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<h1>Owner</h1>
+<p class="muted">Open this inside the wallet that owns the contract.</p>
+<div class="paper">
+<p><b>Owner now</b><br><code id="owner" style="word-break:break-all">·</code></p>
+<p><b>Fee</b> <span id="fee">·</span> &nbsp; <b>Collected</b> <span id="bal">·</span></p>
+<p><b>Connected</b><br><code id="me" style="word-break:break-all">none</code></p>
+<button id="connect" class="primary" type="button">Connect</button>
+<p id="msg" class="small" style="min-height:1.5em"></p>
+<span class="label">Withdraw fees</span>
+<button id="withdraw" class="primary own" type="button" disabled>Send fees to the owner</button>
+<span class="label" style="margin-top:18px">Change fee (POL)</span>
+<input id="newfee" inputmode="decimal" placeholder="11" style="font:inherit;font-size:16px;width:100%;padding:10px;border-radius:12px;border:1px solid #d6c5a3;background:#fbf6ec;color:#2b2418;margin-bottom:8px">
+<button id="setfee" class="primary own" type="button" disabled>Set fee</button>
+<span class="label" style="margin-top:18px">Hand over ownership</span>
+<input id="to" placeholder="0x… main wallet" autocapitalize="none" autocorrect="off" spellcheck="false" style="font:inherit;font-size:16px;width:100%;padding:10px;border-radius:12px;border:1px solid #d6c5a3;background:#fbf6ec;color:#2b2418;margin-bottom:8px">
+<button id="transfer" class="primary own" type="button" disabled>Transfer ownership</button>
+</div>
+<p class="center small"><a id="scan" target="_blank" rel="noopener">Contract on Polygonscan</a></p>
+</main><script src="owner.js"></script></body></html>

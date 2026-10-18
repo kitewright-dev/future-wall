@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b0f1a">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://futurewall.site/">
+<link rel="canonical" href="https://futurewall.site/">
+<meta name="color-scheme" content="dark">
+<title>Future Wall</title>
+<meta name="description" content="Write a letter that nobody can open until the date you pick. Not even us.">
+<meta property="og:title" content="Future Wall">
+<meta property="og:description" content="Write a letter that nobody can open until the date you pick. Not even us.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='%239b2c2c'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23651a1a' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./">Future Wall</a>
+  <button id="connect" class="connect" type="button"><span class="cdot"></span>Connect wallet</button>
+</header>
+
+<div class="sky" aria-hidden="true"></div>
+<main id="home">
+  <section class="hero">
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 320 210" class="env">
+        <defs>
+          <linearGradient id="hp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6eddc"/><stop offset="1" stop-color="#dccaa6"/></linearGradient>
+          <radialGradient id="hw" cx="38%" cy="32%"><stop offset="0" stop-color="#d4ae5a"/><stop offset="1" stop-color="#7d5c1c"/></radialGradient>
+        </defs>
+        <rect x="20" y="22" width="280" height="170" rx="10" fill="url(#hp)"/>
+        <path d="M20 192 L130 112 M300 192 L190 112" stroke="#cdb991" stroke-width="2" fill="none"/>
+        <path d="M22 30 L160 128 L298 30" fill="#ece0c6" stroke="#c4ae82" stroke-width="2"/>
+        <g class="wax"><circle cx="160" cy="128" r="30" fill="url(#hw)"/><circle cx="160" cy="128" r="21" fill="none" stroke="#6d4f16" stroke-width="2.5"/><text x="160" y="137" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#f6eddc">✦</text></g>
+      </svg>
+    </div>
+    <h1>Write a letter nobody can open until the day you pick.</h1>
+    <p class="lede">It gets locked with drand timelock encryption and stored on Polygon. Nobody can read it before that date, not even us. When the day comes it opens for everyone.</p>
+    <div class="stats">
+      <div class="stat"><b id="total">·</b><span>letters sealed</span></div>
+      <div id="years" class="years"></div>
+    </div>
+  </section>
+
+  <section class="write paper">
+    <label for="text" class="label">Your letter</label>
+    <textarea id="text" dir="auto" rows="7" maxlength="2400" placeholder="Dear future me..." autocapitalize="sentences" enterkeyhint="enter"></textarea>
+    <div class="row between"><span class="muted small">Public once it opens. Don't put secrets in it.</span><span id="count" class="muted small">0 / 1200</span></div>
+
+    <span class="label">Open it on</span>
+    <div class="chips" role="group" aria-label="Open date">
+      <button type="button" class="chip" data-preset="1y">In 1 year</button>
+      <button type="button" class="chip" data-preset="5y">In 5 years</button>
+      <button type="button" class="chip" data-preset="2030">1 Jan 2030</button>
+      <button type="button" class="chip" data-preset="pick">Pick a date</button>
+    </div>
+    <input id="pick" type="datetime-local" hidden>
+    <p id="when" class="when"></p>
+
+    <button id="seal" class="primary" type="button">Seal it</button>
+    <p class="muted small center">Costs <span id="fee">·</span> POL plus a little gas. You get the envelope as an NFT.</p>
+  </section>
+
+  <section>
+    <h2>Latest on the wall</h2>
+    <div id="recent" class="grid"></div>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>You write it</b><span>Your letter gets encrypted right in your browser, to a future round of <a href="https://drand.love" target="_blank" rel="noopener">drand</a>, a randomness network run by universities and companies around the world. The key for that round doesn't exist yet, so nobody can open it early.</span></li>
+      <li><b>It waits on Polygon</b><span>The locked letter sits in the contract and you get the envelope as an NFT. It draws itself on chain, no server behind it.</span></li>
+      <li><b>The day comes</b><span>drand publishes the key, anyone can open it, and once the text goes back on chain the envelope turns into the letter for good.</span></li>
+    </ol>
+    <div class="seals">
+      <span><i class="s-gold"></i>First 1000 letters get a gold Genesis seal</span>
+      <span><i class="s-blue"></i>Letters for 1 January get a blue New Year seal</span>
+    </div>
+  </section>
+</main>
+
+<main id="view" hidden>
+  <a class="back" href="./">‹ All letters</a>
+  <h2 id="v-title"></h2>
+  <p id="v-new" class="ok" hidden>Sealed. Nobody can read it now, you included. Send the link to whoever it's for.</p>
+  <img id="v-img" class="envelope" alt="">
+  <p id="v-status" class="status"></p>
+  <div id="v-body" class="letter" dir="auto" hidden></div>
+  <div class="actions">
+    <button id="v-open" class="primary" type="button" hidden>Open it</button>
+    <button id="v-publish" class="primary" type="button" hidden>Put it on the wall</button>
+    <button id="v-share" class="ghost" type="button">Share</button>
+  </div>
+</main>
+
+<footer class="foot">
+  <a id="scan" target="_blank" rel="noopener">Contract</a>
+  <span>·</span>
+  <span>Polygon</span>
+</footer>
+<div id="sheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="grab"></div>
+    <div class="phead">
+      <h3 id="sheet-title">Connect a wallet</h3>
+      <button id="sheet-close" class="x" type="button" aria-label="Close">✕</button>
+    </div>
+    <p id="sheet-sub" class="psub"></p>
+    <div id="sheet-list" class="wlist"></div>
+    <p class="pfoot">Runs on Polygon. Your wallet asks before anything gets signed.</p>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
