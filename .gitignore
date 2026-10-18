@@ -4,7 +4,7 @@ build/*
 !build/deploy.json
 site/app.js
 
-site/launch.js
+site/deploy.js
 empty/
 cache/
 artifacts/

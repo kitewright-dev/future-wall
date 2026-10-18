@@ -1,4 +1,4 @@
-name: test, launch, publish
+name: test, read, publish
 on:
   push:
     branches: [main]
@@ -23,18 +23,18 @@ jobs:
           set -o pipefail
           mkdir -p ci-out empty
           {
-            cp build/FutureWall.json /tmp/committed.json
-            node compile.js
-            cmp build/FutureWall.json /tmp/committed.json && echo "compiled bytecode matches committed artifact"
-            node -e "const a=require('./build/FutureWall.json'),d=require('./build/deploy.json'),{Transaction}=require('ethers');if(!Transaction.from(d.raw).data.startsWith(a.bytecode))process.exit(1);console.log('signed deploy tx carries this bytecode')"
+            cp build/FutureWall.json /tmp/v2.json && cp v1/FutureWall.json /tmp/v1.json
+            node compile.js v1 && cmp v1/FutureWall.json /tmp/v1.json && echo "v1 source still builds the deployed bytecode"
+            node compile.js && cmp build/FutureWall.json /tmp/v2.json && echo "v2 compiled bytecode matches committed artifact"
+            node -e "const a=require('./v1/FutureWall.json'),d=require('./v1/deploy.json'),{Transaction}=require('ethers');if(!Transaction.from(d.raw).data.startsWith(a.bytecode))process.exit(1);console.log('v1 signed deploy tx carries the v1 bytecode')"
             node test/run.mjs | grep -v 'beacon received'
             node test/wallet.mjs
             node test/replay.mjs
             node build.mjs
             cmp site/app.js dist/app.js && echo "dist/app.js matches a fresh build" || echo "WARNING dist/app.js differs from fresh build"
           } 2>&1 | tee ci-out/test.txt
-      - name: launch on polygon
-        run: node scripts/launch.mjs
+      - name: read contracts on polygon
+        run: node scripts/status.mjs
       - name: publish logs and site
         if: always()
         shell: bash

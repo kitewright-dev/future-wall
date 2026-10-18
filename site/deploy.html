@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a"><meta name="robots" content="noindex"><title>Deploy v2</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<h1>Deploy v2</h1>
+<p class="muted">New version where every fee goes straight to the owner wallet. Open this inside the wallet that should own it.</p>
+<div class="paper">
+<p><b>Owner and fee receiver</b><br><code id="me" style="word-break:break-all">connect first</code></p>
+<p><b>Balance</b> <span id="bal">·</span> &nbsp; <b>Fee per letter</b> <span id="fee">·</span></p>
+<p><b>Contract will live at</b><br><code id="addr" style="word-break:break-all">·</code></p>
+<button id="connect" class="primary" type="button">Connect</button>
+<p id="msg" class="small" style="min-height:1.5em"></p>
+<button id="go" class="primary" type="button" disabled>Deploy</button>
+<div id="done" hidden>
+<p><b>New contract</b><br><code id="newaddr" style="word-break:break-all"></code></p>
+<p class="small"><b>tx</b><br><code id="tx" style="word-break:break-all"></code></p>
+<button id="copy" class="primary" type="button">Copy both</button>
+</div>
+</div>
+</main><script src="deploy.js"></script></body></html>

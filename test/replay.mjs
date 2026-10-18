@@ -1,13 +1,13 @@
 import { createRequire } from 'node:module'; import fs from 'node:fs'; import assert from 'node:assert/strict';
 import { ethers } from 'ethers';
 const require = createRequire(import.meta.url); const hre = require('hardhat');
-const d = JSON.parse(fs.readFileSync('build/deploy.json'));
+const d = JSON.parse(fs.readFileSync('v1/deploy.json'));
 const p = new ethers.BrowserProvider(hre.network.provider);
 await p.send('hardhat_setBalance', [d.from, '0x' + ethers.parseEther('3').toString(16)]);
 const h = await p.send('eth_sendRawTransaction', [d.raw]);
 assert.equal(h, d.hash);
 const rc = await p.waitForTransaction(h);
 assert.equal(rc.status, 1); assert.equal(rc.contractAddress, d.contract);
-const c = new ethers.Contract(d.contract, JSON.parse(fs.readFileSync('build/FutureWall.json')).abi, p);
+const c = new ethers.Contract(d.contract, JSON.parse(fs.readFileSync('v1/FutureWall.json')).abi, p);
 assert.equal(await c.owner(), d.from); assert.equal(await c.fee(), ethers.parseEther('11')); assert.equal(await c.name(), 'Future Wall');
 console.log('replay ok: chainId 137, gas', rc.gasUsed.toString(), 'contract', rc.contractAddress);

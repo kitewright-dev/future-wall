@@ -49,6 +49,8 @@ contract FutureWall is ERC721, Ownable {
     );
     event Opened(uint256 indexed id, address indexed opener, string text);
     event FeeChanged(uint256 fee);
+    /// @notice the fee could not be sent to the owner, so it stays here for withdraw()
+    event FeeHeld(uint256 amount);
 
     error FeeTooLow();
     error BadRound();
@@ -90,6 +92,11 @@ contract FutureWall is ERC721, Ownable {
         lettersForYear[y]++;
         _safeMint(msg.sender, id);
         emit Sealed(id, msg.sender, round, uint64(unlock));
+
+        // The fee goes straight to the owner's wallet. If that ever fails the
+        // letter still gets sealed and the money waits here for withdraw().
+        (bool sent,) = owner().call{value: msg.value}("");
+        if (!sent) emit FeeHeld(msg.value);
     }
 
     /// @notice After the unlock time anyone holding the drand beacon can decrypt
@@ -130,6 +137,7 @@ contract FutureWall is ERC721, Ownable {
         emit FeeChanged(fee_);
     }
 
+    /// @notice only needed if a fee ever got stuck, see FeeHeld
     function withdraw() external onlyOwner {
         (bool ok,) = owner().call{value: address(this).balance}("");
         require(ok, "withdraw failed");

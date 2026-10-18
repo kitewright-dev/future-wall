@@ -22,11 +22,16 @@ To stop someone from putting fake text on the wall, the contract keeps a hash of
 - `open(id, salt, text)` works after the date, once, for anyone.
 - `tokenURI` draws the envelope (or the opened letter) as SVG fully on chain. No IPFS, no server.
 - first 1000 letters get a gold Genesis seal, letters set for 1 January get a blue one.
-- the owner can change the fee and withdraw fees. The owner can't touch letters.
+- every fee goes straight to the owner wallet in the same transaction as the seal, nothing piles up in the contract. if that transfer ever fails the letter still gets sealed and the fee waits for `withdraw()`.
+- the owner can change the fee. The owner can't read, change or delete letters, and can't touch anyone's NFT.
 
 Polygon contract: [`0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853`](https://polygonscan.com/address/0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853)
 
-`owner.html` is a small page for the owner wallet: withdraw fees, change the fee, hand ownership to another address.
+`v1/` is the first deployment (same thing, but it held fees until the owner withdrew them). Its source is kept so anyone can check it against the chain.
+
+`verify/` has the exact compiler input for Polygonscan (Solidity Standard-Json-Input, 0.8.28, optimizer 200 runs, viaIR, cancun) so you can confirm the deployed code is this code.
+
+`owner.html` is a small page for the owner wallet: change the fee, pull out a stuck fee, hand ownership to another address. `deploy.html` puts a fresh copy on chain from whatever wallet opens it.
 
 ## running it
 

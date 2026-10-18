@@ -86,6 +86,7 @@ ok('ownership goes straight to the given address, not the deployer');
 const chainNow = async () => parseInt((await provider.send('eth_getBlockByNumber', ['latest', false])).timestamp);
 const mine = async (secs) => { await provider.send('evm_increaseTime', [secs]); await provider.send('evm_mine', []); };
 
+const rawBal = async (a) => BigInt(await provider.send('eth_getBalance', [a, 'latest']));
 const t0 = await chainNow();
 const text = 'To whoever reads this in 2030:\n"<script>alert(1)</script>" & \u0001 — درود ✨';
 const unlock = t0 + 2 * 86400;
@@ -147,6 +148,7 @@ fs.writeFileSync('build/preview/opened.svg', m.svg);
 ok('opened art shows the letter, escaped, well-formed, script-free');
 
 // New Year seal + date maths across many timestamps
+const bobStart = await rawBal(await bob.getAddress()); // bob sends nothing until the checks below
 for (let i = 0; i < 1000; i++) await (await fw.connect(alice).seal(roundAtTime((await chainNow()) + 7200), s1.commitment, '0x01', { value: FEE, gasLimit: 300000 })).wait();
 const ny = Date.UTC(2031, 0, 1) / 1000;
 const nyl = await sealLetter('happy new year', ny);
@@ -169,18 +171,24 @@ for (const ts of [0, 951782400, 1709164800, 4102444800, 4107542400, 1692803367 +
 }
 ok('on-chain roundTime matches the website for many rounds');
 
-// owner money
-const rawBal = async (a) => BigInt(await provider.send('eth_getBalance', [a, 'latest']));
-const held = await rawBal(await fw.getAddress());
-assert.equal(held, FEE * 1002n, 'contract holds every fee');
-const bal0 = await rawBal(await bob.getAddress());
+// owner money: every fee went straight to bob, nothing sits in the contract
+assert.equal(await rawBal(await fw.getAddress()), 0n, 'contract keeps nothing');
+assert.equal(await rawBal(await bob.getAddress()) - bobStart, FEE * 1001n, 'owner got every fee');
+ok('each fee lands in the owner wallet the moment a letter is sealed, contract holds 0');
 await rejects(A.withdraw.staticCall(), 'OwnableUnauthorizedAccount', 'only owner can withdraw');
 await rejects(A.setFee.staticCall(0), 'OwnableUnauthorizedAccount', 'only owner can change the fee');
-const wrc = await (await fw.connect(bob).withdraw({ gasLimit: 100000 })).wait();
-const bal1 = await rawBal(await bob.getAddress());
-assert.equal(bal1 - bal0 + wrc.gasUsed * wrc.gasPrice, held);
-assert.equal(await rawBal(await fw.getAddress()), 0n);
-ok('withdraw sends every fee to the owner wallet');
+{
+  // an owner that refuses money must not block anyone from sealing
+  const rejectAll = await (await ownerS.sendTransaction({ data: '0x6460006000fd6000526005601bf3' })).wait();
+  const fw2 = await factory.deploy(rejectAll.contractAddress, FEE);
+  await fw2.waitForDeployment();
+  const sl = await sealLetter('still works', (await chainNow()) + 86400);
+  const r2 = await (await fw2.connect(alice).seal(sl.round, sl.commitment, sl.ciphertext, { value: FEE, gasLimit: 1500000 })).wait();
+  assert.ok(r2.logs.some((l) => { try { return fw2.interface.parseLog(l).name === 'FeeHeld'; } catch { return false; } }));
+  assert.equal(await rawBal(await fw2.getAddress()), FEE);
+  assert.equal(await fw2.ownerOf(1), await alice.getAddress());
+  ok('if the owner cannot receive, the letter still seals and the fee waits for withdraw');
+}
 await (await fw.connect(bob).setFee(ethers.parseEther('5'), { gasLimit: 100000 })).wait();
 assert.equal(await fw.fee(), ethers.parseEther('5'));
 ok('owner can change the fee');
