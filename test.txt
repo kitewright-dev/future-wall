@@ -1,0 +1,53 @@
+v1 runtime bytes 13533 initcode 14531
+v1 source still builds the deployed bytecode
+current runtime bytes 13611 initcode 14609
+v2 compiled bytecode matches committed artifact
+v1 signed deploy tx carries the v1 bytecode
+timelock
+  ✓ encrypt with public key only, decrypt with beacon, commitment matches
+  ✓ refuses to decrypt before the round
+  ✓ a beacon that does not verify against the key is rejected
+  ✓ quicknet ciphertext built offline (690 bytes)
+contract
+  ✓ deployed, gas 3104679
+  ✓ ownership goes straight to the given address, not the deployer
+  ✓ fee too low reverts
+  ✓ less than an hour reverts
+  ✓ over 100 years reverts
+  ✓ oversized ciphertext reverts
+  ✓ seal mints NFT #1, stores the ciphertext and counts the year, gas 766205 for 792 bytes
+  ✓ sealed metadata valid, date 2026-10-20, Genesis seal, no text leaked
+  ✓ cannot open before unlock time
+  ✓ status flips to Ready after the date
+  ✓ a forged text is rejected
+  ✓ a wrong salt is rejected
+    note: explicit gas limit, hardhat estimateGas misreads time after evm_increaseTime
+  ✓ anyone can open with the real text, gas 123862
+  ✓ cannot open twice
+  ✓ opened art shows the letter, escaped, well-formed, script-free
+  ✓ token #1002: past Genesis supply, New Year seal for 2031-01-01
+  ✓ on-chain roundTime matches the website for many rounds
+  ✓ each fee lands in the owner wallet the moment a letter is sealed, contract holds 0
+  ✓ only owner can withdraw
+  ✓ only owner can change the fee
+  ✓ if the owner cannot receive, the letter still seals and the fee waits for withdraw
+  ✓ owner can change the fee
+  ✓ on-chain calendar matches JS for 25 random dates up to 99 years out
+
+27 checks passed
+wallet
+  ✓ three wallets, current MetaMask link format, no OKX
+  ✓ icons for all three wallets are complete svg data uris
+  ✓ already on Polygon: no switch prompt
+  ✓ on Ethereum: switches to Polygon
+  ✓ Polygon missing (code 4902): adds it
+  ✓ Polygon missing, MetaMask mobile style wrapped -32603: still adds it
+  ✓ user says no to the switch: clean message, no add attempt
+  ✓ wallet claims it switched but did not: caught
+  ✓ pending request message and wallet guessing
+  ✓ owner page calls exist in the deployed contract ABI
+
+10 wallet checks passed
+replay ok: chainId 137, gas 3087840 contract 0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853
+app.js 259764 gzip 87506
+dist/app.js matches a fresh build
