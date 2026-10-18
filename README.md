@@ -1,5 +1,7 @@
 # Future Wall
 
+live at **https://future-wall.vercel.app**
+
 You write a letter and pick a date. The letter gets encrypted in your browser so it can only be opened after that date, and it's stored in a contract on Polygon. Nobody can read it early. That includes me.
 
 When the date comes it opens for everyone, and the envelope NFT you got when you sealed it turns into the letter itself.
@@ -22,18 +24,24 @@ To stop someone from putting fake text on the wall, the contract keeps a hash of
 - first 1000 letters get a gold Genesis seal, letters set for 1 January get a blue one.
 - the owner can change the fee and withdraw fees. The owner can't touch letters.
 
-Polygon contract: `0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853`
+Polygon contract: [`0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853`](https://polygonscan.com/address/0xDDD01055E5A4F8A65FD691B3AD175B77f5C3C853)
+
+`owner.html` is a small page for the owner wallet: withdraw fees, change the fee, hand ownership to another address.
 
 ## running it
 
 ```
 npm ci
 npm run compile
-npm test
+npm test           # contract, timelock and wallet checks
 npm run build      # outputs the site into site/
 ```
 
 The tests run the contract on a local chain and do a full encrypt/decrypt round trip against a locally generated drand style key, same scheme as the real network. There's also a check that the art is valid XML, has no script in it and escapes whatever people write.
+
+## wallets
+
+In a normal mobile browser there's no wallet, so the site offers to reopen itself inside MetaMask, Trust Wallet or Coinbase Wallet. Inside a wallet browser (or with a desktop extension) it just connects, and it switches you to Polygon or adds it if your wallet doesn't have it yet.
 
 ## caveats
 

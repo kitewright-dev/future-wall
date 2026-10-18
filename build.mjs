@@ -18,4 +18,5 @@ const dedupe = {
 const common = { bundle: true, minify: true, format: 'iife', target: 'es2020', define: { global: 'globalThis' }, logLevel: 'warning', plugins: [dedupe] };
 await esbuild.build({ ...common, entryPoints: ['src/app.mjs'], outfile: 'site/app.js' });
 await esbuild.build({ ...common, entryPoints: ['src/launch.mjs'], outfile: 'site/launch.js' });
+await esbuild.build({ ...common, entryPoints: ['src/owner.mjs'], outfile: 'site/owner.js' });
 console.log('app.js', fs.statSync('site/app.js').size, 'gzip', zlib.gzipSync(fs.readFileSync('site/app.js')).length);

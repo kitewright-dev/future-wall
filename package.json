@@ -4,13 +4,14 @@
   "description": "Letters to the future, timelock encrypted with drand, stored on Polygon",
   "scripts": {
     "compile": "node compile.js",
-    "test": "node test/run.mjs",
+    "test": "node test/run.mjs && node test/wallet.mjs",
     "build": "node build.mjs"
   },
   "license": "MIT",
   "dependencies": {
     "@openzeppelin/contracts": "5.6.1",
     "@resvg/resvg-js": "2.6.2",
+    "@web3icons/core": "4.0.58",
     "@xmldom/xmldom": "0.9.12",
     "esbuild": "0.28.2",
     "ethers": "6.17.0",

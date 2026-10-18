@@ -28,6 +28,7 @@ jobs:
             cmp build/FutureWall.json /tmp/committed.json && echo "compiled bytecode matches committed artifact"
             node -e "const a=require('./build/FutureWall.json'),d=require('./build/deploy.json'),{Transaction}=require('ethers');if(!Transaction.from(d.raw).data.startsWith(a.bytecode))process.exit(1);console.log('signed deploy tx carries this bytecode')"
             node test/run.mjs | grep -v 'beacon received'
+            node test/wallet.mjs
             node test/replay.mjs
             node build.mjs
             cmp site/app.js dist/app.js && echo "dist/app.js matches a fresh build" || echo "WARNING dist/app.js differs from fresh build"

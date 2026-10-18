@@ -1,4 +1,5 @@
-import { Interface, formatEther, toBeHex } from 'ethers';
+import { Interface, formatEther, toQuantity } from 'ethers';
+import { ICONS, walletLinks, guessKey, ensurePolygon, walletErrorText } from './wallet.mjs';
 import { sealLetter, openLetter, fetchingClient, timeOfRound, commitmentOf, MAX_TEXT } from './core.mjs';
 import { CONFIG } from './config.mjs';
 
@@ -53,21 +54,34 @@ window.addEventListener('eip6963:announceProvider', (e) => {
 window.dispatchEvent(new Event('eip6963:requestProvider'));
 function injected() {
   const list = [...found.values()].map((d) => ({ name: d.info.name, icon: d.info.icon, provider: d.provider }));
-  if (!list.length && window.ethereum) list.push({ name: window.ethereum.isMetaMask ? 'MetaMask' : 'Browser wallet', provider: window.ethereum });
+  if (!list.length && window.ethereum) {
+    const key = guessKey('', window.ethereum);
+    const names = { metamask: 'MetaMask', trust: 'Trust Wallet', coinbase: 'Coinbase Wallet' };
+    list.push({ name: names[key] || 'Browser wallet', provider: window.ethereum });
+  }
+  for (const w of list) if (!w.icon) { const k = guessKey(w.name, w.provider); if (k) w.icon = ICONS[k]; }
   return list;
 }
+// Wallet browsers sometimes inject a moment after the page starts.
+async function waitForInjected(ms = 900) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    if (found.size || window.ethereum) return;
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    await new Promise((r) => setTimeout(r, 150));
+  }
+}
 
-// Deep links that open this page inside a wallet app's own browser.
-function walletLinks() {
-  const full = location.href;
-  const bare = location.host + location.pathname + location.search;
-  const enc = encodeURIComponent(full);
-  return [
-    { name: 'MetaMask', href: `https://metamask.app.link/dapp/${bare}` },
-    { name: 'Trust Wallet', href: `https://link.trustwallet.com/open_url?coin_id=966&url=${enc}` },
-    { name: 'Coinbase Wallet', href: `https://go.cb-w.com/dapp?cb_url=${enc}` },
-    { name: 'OKX Wallet', href: `okx://wallet/dapp/url?dappUrl=${enc}` },
-  ];
+function walletRow(tag, w, hint) {
+  const b = el(tag, 'wopt');
+  if (tag === 'button') b.type = 'button';
+  const ic = el('span', 'wicon');
+  if (w.icon) { const i = el('img'); i.src = w.icon; i.alt = ''; i.width = 44; i.height = 44; ic.append(i); }
+  const txt = el('span', 'wtxt');
+  txt.append(el('b', null, w.name));
+  if (hint) txt.append(el('small', null, hint));
+  b.append(ic, txt, el('span', 'wgo', '›'));
+  return b;
 }
 
 let sheetResolve = null;
@@ -77,66 +91,71 @@ function openSheet() {
   const inj = injected();
   if (inj.length) {
     $('#sheet-title').textContent = 'Connect a wallet';
-    $('#sheet-sub').textContent = 'Pick the wallet you want to use.';
+    $('#sheet-sub').textContent = 'Pick the wallet you want to seal with.';
     for (const w of inj) {
-      const b = el('button', 'wopt'); b.type = 'button';
-      if (w.icon) { const i = el('img'); i.src = w.icon; i.alt = ''; b.append(i); } else b.append(el('span', 'wdot'));
-      b.append(el('span', null, w.name));
+      const b = walletRow('button', w, 'Installed');
       b.onclick = () => { const r = sheetResolve; sheetResolve = null; closeSheet(); r?.(w.provider); };
       list.append(b);
     }
   } else {
     $('#sheet-title').textContent = 'Open in your wallet';
-    $('#sheet-sub').textContent = 'This browser has no wallet. Open the page inside your wallet app and connect from there.';
-    for (const w of walletLinks()) {
-      const a = el('a', 'wopt'); a.href = w.href; a.append(el('span', 'wdot'), el('span', null, w.name));
+    $('#sheet-sub').textContent = "This browser doesn't have a wallet. Tap yours and the page opens right inside the app.";
+    for (const w of walletLinks(location)) {
+      const a = walletRow('a', { ...w, icon: ICONS[w.key] }, `Opens Future Wall in ${w.name}`);
+      a.href = w.href; a.rel = 'noopener';
       list.append(a);
     }
-    const c = el('button', 'wopt'); c.type = 'button'; c.append(el('span', 'wdot'), el('span', null, 'Other wallet? Copy the link'));
-    c.onclick = async () => { try { await navigator.clipboard.writeText(location.href); toast('Link copied. Paste it in your wallet browser.'); } catch { toast(location.href); } };
-    list.append(c);
   }
   sheet.hidden = false;
-  requestAnimationFrame(() => { sheet.dataset.open = '1'; });
+  requestAnimationFrame(() => requestAnimationFrame(() => { sheet.dataset.open = '1'; }));
   return new Promise((res) => { sheetResolve = res; });
 }
 function closeSheet() {
   const sheet = $('#sheet');
   sheet.dataset.open = '';
-  setTimeout(() => { sheet.hidden = true; }, 220);
+  setTimeout(() => { sheet.hidden = true; }, 240);
   const r = sheetResolve; sheetResolve = null; if (r) setTimeout(() => r(null), 0);
 }
 
+function resetAccount() {
+  account = null;
+  const btn = $('#connect');
+  btn.replaceChildren(el('span', 'cdot'), 'Connect wallet');
+  btn.dataset.on = '';
+}
+function watch(p) {
+  if (!p?.on || p.__fwWatched) return;
+  p.__fwWatched = true;
+  p.on('accountsChanged', (a) => { if (wallet !== p) return; if (a?.[0]) { account = a[0]; showAccount(); } else resetAccount(); });
+  p.on('chainChanged', () => {});
+}
+function showAccount() {
+  const btn = $('#connect');
+  btn.replaceChildren(el('span', 'cdot'), short(account));
+  btn.dataset.on = '1';
+}
+
 async function connect() {
-  if (account && wallet) return account;
-  // give late EIP-6963 announcements a moment
-  if (!found.size) { window.dispatchEvent(new Event('eip6963:requestProvider')); await new Promise((r) => setTimeout(r, 150)); }
+  if (account && wallet) { await ensurePolygon(eth, CONFIG.rpcs[0]); return account; }
+  await waitForInjected();
   const inj = injected();
   let p = inj.length === 1 ? inj[0].provider : null;
   if (!p) p = await openSheet();
   if (!p) throw new Error('no wallet');
   wallet = p;
+  watch(p);
   const accs = await eth('eth_requestAccounts');
+  if (!accs?.[0]) throw new Error('The wallet did not share an account.');
   account = accs[0];
-  const chain = await eth('eth_chainId');
-  if (BigInt(chain) !== 137n) {
-    try {
-      await eth('wallet_switchEthereumChain', [{ chainId: '0x89' }]);
-    } catch (e) {
-      if (e.code === 4902 || /unrecognized|not added/i.test(e.message || '')) {
-        await eth('wallet_addEthereumChain', [{ chainId: '0x89', chainName: 'Polygon', nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 }, rpcUrls: [CONFIG.rpcs[0]], blockExplorerUrls: ['https://polygonscan.com'] }]);
-      } else throw e;
-    }
-  }
-  const btn = $('#connect');
-  btn.textContent = short(account);
-  btn.dataset.on = '1';
+  await ensurePolygon(eth, CONFIG.rpcs[0]);
+  showAccount();
   return account;
 }
 const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
 // Sends a contract call from the connected wallet and waits for it to be mined.
 async function send(fn, args, value = 0n) {
-  const tx = { from: account, to: CONFIG.contract, data: iface.encodeFunctionData(fn, args), value: toBeHex(value) };
+  await ensurePolygon(eth, CONFIG.rpcs[0]); // the user may have switched since connecting
+  const tx = { from: account, to: CONFIG.contract, data: iface.encodeFunctionData(fn, args), value: toQuantity(value) };
   const hash = await eth('eth_sendTransaction', [tx]);
   return { hash, wait: () => waitReceipt(hash) };
 }
@@ -156,20 +175,14 @@ async function waitReceipt(hash) {
 
 // ---------- small ui helpers ----------
 let toastTimer;
-function toast(msg, link) {
+function toast(msg) {
   const t = $('#toast');
   t.replaceChildren(el('span', null, msg));
-  if (link) { const a = el('a', null, 'Open in MetaMask'); a.href = link; t.append(' ', a); }
   t.dataset.show = '1';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.dataset.show = ''; }, link ? 9000 : 4500);
+  toastTimer = setTimeout(() => { t.dataset.show = ''; }, 4500);
 }
-function errText(e) {
-  if (e?.code === 'ACTION_REJECTED' || e?.code === 4001) return 'You cancelled it in the wallet.';
-  const m = e?.shortMessage || e?.reason || e?.message || String(e);
-  if (/insufficient funds/i.test(m)) return 'Not enough POL in this wallet for the fee plus gas.';
-  return m.length > 140 ? m.slice(0, 140) + '…' : m;
-}
+const errText = walletErrorText;
 const fmtDate = (unix) => new Date(unix * 1000).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 function countdown(unix) {
   let s = Math.max(0, Math.floor(unix - Date.now() / 1000));
