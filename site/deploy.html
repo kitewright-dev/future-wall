@@ -3,9 +3,11 @@
 <meta name="theme-color" content="#0b0f1a"><meta name="robots" content="noindex"><title>Deploy v2</title><link rel="stylesheet" href="style.css"></head>
 <body><main>
 <h1>Deploy v2</h1>
-<p class="muted">New version where every fee goes straight to the owner wallet. Open this inside the wallet that should own it.</p>
+<p class="muted">New version where every fee goes straight to the owner wallet. Open it in any wallet that has about 1.2 POL for gas. The fees go to the address below, not to the wallet you pay gas with.</p>
 <div class="paper">
-<p><b>Owner and fee receiver</b><br><code id="me" style="word-break:break-all">connect first</code></p>
+<span class="label">Fees go to</span>
+<input id="owner" autocapitalize="none" autocorrect="off" spellcheck="false" value="0xCbD4Bb31a93b9FE0BEa63A77a39a905fa09736E0" style="font:inherit;font-size:16px;width:100%;padding:10px;border-radius:12px;border:1px solid #d6c5a3;background:#fbf6ec;color:#2b2418;margin-bottom:8px">
+<p><b>Paying gas from</b><br><code id="me" style="word-break:break-all">connect first</code></p>
 <p><b>Balance</b> <span id="bal">·</span> &nbsp; <b>Fee per letter</b> <span id="fee">·</span></p>
 <p><b>Contract will live at</b><br><code id="addr" style="word-break:break-all">·</code></p>
 <button id="connect" class="primary" type="button">Connect</button>
